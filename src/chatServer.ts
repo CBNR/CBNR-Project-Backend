@@ -31,9 +31,9 @@ class ChatServer{
         this.initCallbacks();
 
         // For backend debug only
-        this.app.get('/', (req,res) => {
-            res.sendFile(path.join(__dirname, '..', 'debug', 'index.html')) //TODO: change to be compatible with front end.
-        })
+        // this.app.get('/', (req,res) => {
+        //     res.sendFile(path.join(__dirname, '..', 'debug', 'index.html')) //TODO: change to be compatible with front end.
+        // })
     }
 
     /**
