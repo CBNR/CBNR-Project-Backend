@@ -27,10 +27,8 @@ class ChatServer{
             console.log('Server listening on port ' + this.port);
         })
         this.io = socketIO(this.server);
-
         this.initCallbacks();
-
-        // For backend debug only
+        // DEBUG
         // this.app.get('/', (req,res) => {
         //     res.sendFile(path.join(__dirname, '..', 'debug', 'index.html')) //TODO: change to be compatible with front end.
         // })
@@ -51,9 +49,19 @@ class ChatServer{
      */
     private connectionCB(socket : socketIO.Socket){
         console.log('[New Connection] ' + socket.id);
-        socket.on('chat_msg', (ChatMessage) => {
-            this.rcvChatCB(ChatMessage);
-        })
+        
+        // Handle custom events
+        socket.on('chat_msg', (chatMessage) => {
+            this.rcvChatCB(chatMessage);
+        });
+        
+        // Handle builtin events
+        socket.on('disconnect', () => {
+            this.disconnectCB(socket);
+        });
+        socket.on('connect_timeout', () => {
+            this.timeoutCB(socket);
+        });
     }
 
     /**
@@ -64,6 +72,23 @@ class ChatServer{
     private rcvChatCB(chatMessage : ChatMessage) : void{
         this.io.sockets.emit('chat_msg', chatMessage);
     }
+
+    /**
+     * Disconnect callback
+     * @param socket 
+     */
+    private disconnectCB(socket : socketIO.Socket){
+        console.log('[Connection closed] ' + socket.id);
+    }
+
+    /**
+     * Connection timeout callback.
+     * @param socket 
+     */
+    private timeoutCB(socket : socketIO.Socket){
+        console.log('[Timeout] ' + socket.id);
+    }
+
 }
 
 let chatServer = new ChatServer(3001);
