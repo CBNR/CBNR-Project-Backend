@@ -2,24 +2,25 @@ import express, { response } from 'express';
 import path from 'path';
 import http from 'http';
 import socketIO, { Socket, listen, Room } from 'socket.io';
+import {ChatRoom} from './chatRoom';
 import md5 from 'md5';
 
 // ============================================================================================ //
 // = Interfaces =============================================================================== //
 // ============================================================================================ //
 
-interface ChatMessage{
-    handle : string,
-    message: string,
-    target?: string, // TODO: private chat targets to be implemented
-    auth? : Object
-};
+// interface ChatMessage{
+//     handle : string,
+//     message: string,
+//     target?: string, // TODO: private chat targets to be implemented
+//     auth? : Object
+// };
 
-interface User{
-    id : string,
-    name : string,
-    loginType? : string
-};
+// interface User{
+//     id : string,
+//     name : string,
+//     loginType? : string
+// };
 
 export interface EventResponse{
     event : string,
@@ -27,7 +28,7 @@ export interface EventResponse{
     errMsg: string
 }
 
-export interface chatMessage{
+export interface ChatMessage{
     roomId : string;
     message : string;
 }
@@ -46,12 +47,19 @@ const io : socketIO.Server = socketIO(server);
 io.on('connection', onConnect);
 
 // ============================================================================================ //
-// = Express stuff ============================================================================ //
+// = DEBUG ONLY ============================================================================ //
 // ============================================================================================ //
-// MOSTLY debug. remove when unnecessary
-app.get('/', (req,res) => {
-    res.sendFile(path.join(__dirname, '..', 'debug', 'index.html'))
+app.get('/chat', (req,res) => {
+    res.sendFile(path.join(__dirname, '..', 'debug', 'chat.html'))
 })
+
+app.get('/login', (req,res) => {
+    res.sendFile(path.join(__dirname, '..', 'debug', 'chat.html'))
+})
+
+app.get('*', (req, res)=>{
+    res.status(404).send('404 - Page not found');
+});
 
 // ============================================================================================ //
 // = Init non-system variables ================================================================ //
@@ -73,7 +81,7 @@ function onConnect(socket : socketIO.Socket){
     socket.on('create_room', (roomId : string)=>createRoomCB(socket, roomId));
     socket.on('join_room', (roomId : string)=>joinRoomCB(socket, roomId));
     socket.on('leave_room', (roomId : string)=>leaveRoomCB(socket, roomId));
-    socket.on('chat_msg', ()=>chatMsgCB(socket));
+    socket.on('chat_msg', (chatMessage)=>chatMsgCB(socket, chatMessage));
     
     // Confirm a connection and establish a session with that user.
     // We're assuming every new window is a new session, for now.
@@ -173,14 +181,37 @@ function leaveRoomCB(socket : socketIO.Socket, roomId : string){
     });
 };
 
-function chatMsgCB(socket : socketIO.Socket){
-        
+/**
+ * Callback function when a 'chat_msg' event is received from a client.
+ * Broadcasts a ChatMessage object to everyone in the room.
+ * 
+ * @param roomId string - roomId to leave
+ * @param socket 
+ */
+function chatMsgCB(socket : socketIO.Socket, chatMessage : ChatMessage){
+    let roomId = chatMessage.roomId;
+    let message = chatMessage.message;
+
+    // Check if room exists
+    if (rooms.has(roomId)){
+        // Check if user is in said room
+        if (Object.keys(socket.rooms).includes(roomId)){
+            socket.to(roomId).emit('chat_msg', message);
+            eventRes(socket, 'chat_msg', true, 'OK');
+            return;
+        } else {
+            eventRes(socket, 'chat_msg', false, 'Client must be in room to send message');
+        }
+    } else {
+        eventRes(socket, 'chat_msg', false, 'Room does not exist');
+    }    
+
 };
 
 /**
  * Send the client an event response through socket onnection.
  * 
- * @param socket 
+ * @param socket client socket.
  * @param event name of event (e.g. join_room)
  * @param success boolean
  * @param errMsg Error message to send to client ('OK' if no error)
