@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <Title>Socket experiment</Title>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body id='body'>
+        <div id='chat-window'>
+            <div id='output'></div>
+            <input id='handle' type='text' placeholder='handle'>
+            <input id='message' type='text' placeholder='Message'>
+            <button id='send'>Send</button>
+        </div>
+    </body>
+    <div id = 'roomlist'></div>
+    <br>
+    <button id='creatR'>Create Room</button>
+    <button id='leaveR'>Leave Room</button>
+
+    <script>
+        var socket = io.connect('http://localhost:3001', {secure:true});
+        socket.emit('join_room', 'Lorem ipsum dolor sit amet');
+        let button = document.getElementById('leaveR');
+    </script>
+</html>
