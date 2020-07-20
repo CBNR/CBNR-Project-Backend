@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon build/chatServer",
-    "start": "node build/chatServer",
+    "devStart": "nodemon build/socketServer",
+    "start": "node build/socketServer",
     "tsc": "tsc"
   },
   "repository": {

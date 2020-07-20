@@ -18,8 +18,8 @@
     <button id='leaveR'>Leave Room</button>
 
     <script>
-        var socket = io.connect('http://localhost:3001');
-        socket.emit('join_room', {no:{yes : 'tomato'}});
+        var socket = io.connect('http://localhost:3001', {secure:true});
+        socket.emit('join_room', 'Lorem ipsum dolor sit amet');
         let button = document.getElementById('leaveR');
     </script>
 </html>
