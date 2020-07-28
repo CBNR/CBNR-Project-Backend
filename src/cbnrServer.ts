@@ -1,17 +1,15 @@
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import http from 'http';
-import socketIO, { Room } from 'socket.io';
+import socketIO from 'socket.io';
 
 import redis from 'redis';
 import connectRedis from 'connect-redis';
 import session from 'express-session';
 
-import {cbnrRouter} from './cbnrRouter';
 import bodyParser from 'body-parser';
 import path from 'path';
 
 // Environment variables
-
 const {
     PORT = 3001,
     REDIS_DOMAIN = 'localhost',
