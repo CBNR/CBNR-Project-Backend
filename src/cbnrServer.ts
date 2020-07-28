@@ -22,6 +22,7 @@ const {
 const SESSION_SECURE = process.env.NODE_ENV === 'production';
 
 class CBNRServer{
+    
     private app : express.Application;
     private server : http.Server; // Replace with https in production
     private sio : socketIO.Server;
@@ -78,7 +79,7 @@ class CBNRServer{
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended:true}));
     }
-
+    
 }
 
 // TODO: declare someplace else

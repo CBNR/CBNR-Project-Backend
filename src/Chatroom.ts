@@ -1,4 +1,5 @@
 import socketIO from 'socket.io';
+import { RedisClient } from 'redis';
 
 export interface User{
     name : string,
@@ -20,7 +21,6 @@ export class ChatRoom{
 
     public getName() : string {
         return this.name;
-        
     }
 
     public addUser(user : User){
