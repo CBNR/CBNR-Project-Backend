@@ -17,12 +17,14 @@ export class ChatRoom{
     protected users = new Set<socketIO.Socket>();
     protected sio : socketIO.Server;
     private date : Date = new Date();
-    private subRooms : Set<ChatRoom> = new Set<ChatRoom>();
+    public subRooms : Map<string, ChatRoom> = new Map<string, ChatRoom>();
+    public parent? : ChatRoom;
 
-    constructor(id : string, sio : socketIO.Server, type : RoomType){
+    constructor(id : string, sio : socketIO.Server, type : RoomType, parent? : ChatRoom){
         this.id = id;
         this.sio = sio;
         this.type = type;
+        this.parent = parent;
     }
     
     public broadcastMsg(sender : string, message : string){
@@ -51,7 +53,7 @@ export class ChatRoom{
     public createSubRoom(user : User, roomName : string) : boolean{
         if (this.type = RoomType.building){
             let newRoom = new ChatRoom('ROOM'+uuid.v4().substr(23,12), this.sio, RoomType.room);
-            this.subRooms.add(newRoom);
+            this.subRooms.set(newRoom.id, newRoom);
             return true;
         } else {
         return false;
