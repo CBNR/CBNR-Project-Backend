@@ -82,8 +82,9 @@ class CbnrServer{
                 res.status(500);
                 res.send();
             } else {
-                if (req.body.username){
+                if (req.body.username != undefined && req.body.avatarId != undefined){
                     req.session.username = req.body.username;
+                    req.session.avatarId= req.body.avatarId;
                     res.status(200);
                     res.redirect('/');
                 } else {

@@ -1,6 +1,6 @@
 import socketIO from 'socket.io';
 import {RoomType} from './model/RoomType';
-import {User} from './User';
+import {ChatUser, User} from './User';
 
 import uuid from 'uuid';
 
@@ -12,16 +12,20 @@ interface ChatMessage{
 
 export class ChatRoom{
     
-    public id : string;
-    public type : RoomType = RoomType.room;
-    protected users = new Set<socketIO.Socket>();
+    public readonly id : string;
+    public readonly name : string;
+    public readonly type : RoomType = RoomType.room;
+    
+    private users : Map<ChatUser, User> = new Map<ChatUser, User>();
+
     protected sio : socketIO.Server;
     private date : Date = new Date();
     public subRooms : Map<string, ChatRoom> = new Map<string, ChatRoom>();
-    public parent? : ChatRoom;
+    public readonly parent? : ChatRoom;
 
-    constructor(id : string, sio : socketIO.Server, type : RoomType, parent? : ChatRoom){
+    constructor(id : string, name : string, sio : socketIO.Server, type : RoomType, parent? : ChatRoom){
         this.id = id;
+        this.name = name;
         this.sio = sio;
         this.type = type;
         this.parent = parent;
@@ -35,31 +39,46 @@ export class ChatRoom{
         });
     }
 
-    public addUser(user : User){ // TODO: replace with user
+    public addUser(user : ChatUser){ // TODO: replace with user
         user.socket.join(this.id, ()=>{
-            this.broadcastMsg("Server", user.name + " joined the room.");
+            this.users.set(user, user.getPublicUser());
         });
+        this.broadcastMsg("Server", user.name + " joined the room.");
+        user.room = this;
     }
 
-    public removeUser(user : User){
+    public removeUser(user : ChatUser){
         user.socket.leave(this.id, ()=>{
-            this.broadcastMsg("Server", user.name + " left the room.");
+            this.users.delete(user);
         });
+        this.broadcastMsg("Server", user.name + " left the room.");
+        user.room = undefined;
     }
 
     /**
      * Returns true if a new room is created, false otherwise
      */
-    public createSubRoom(user : User, roomName : string) : boolean{
-        if (this.type = RoomType.building){
-            let newRoom = new ChatRoom('ROOM'+uuid.v4().substr(23,12), this.sio, RoomType.room);
+    public createSubRoom(user : ChatUser, roomName : string) : boolean{
+        if (this.type == RoomType.building){
+            let newRoom = new ChatRoom('ROOM'+uuid.v4().substr(23,12), roomName, this.sio, RoomType.room, this);
             this.subRooms.set(newRoom.id, newRoom);
             return true;
         } else {
-        return false;
+            return false;
         }
     }
 
+    public getUsers() : User[]{
+        return Array.from(this.users.values());
+    }
+
+    public getChildrenIds() : string[] {
+        return Array.from(this.subRooms.keys())
+    }
+
+    public totalUsers() : number{
+        return this.users.size;
+    }
 }
 
 class Building extends ChatRoom{

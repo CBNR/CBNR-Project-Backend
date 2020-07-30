@@ -4,12 +4,21 @@ import express from 'express';
 import uuid from 'uuid';
 
 import {ChatRoom} from './ChatRoom';
-import {User} from './User';
+import {ChatUser} from './User';
+import {RoomType} from './model/RoomType';
 
 interface EventResponse{
     event : string,
     success : boolean,
-    msg : string
+    msg : string,
+    obj? : any
+}
+
+interface RoomListing{
+    id : string,
+    name : string,
+    type : RoomType,
+    userCount : number
 }
 
 export class ChatServer{
@@ -28,14 +37,25 @@ export class ChatServer{
             sessionMiddleware(socket.request, socket.request.res || {}, next);
         });
         this.initSocketEvents();
+        this.initBuildings(); // TODO: Remove for production DEBUG ONLY
     }
 
     // == Private functions ================================================================ //
-    private eventRes(socket : socketIO.Socket, event : string, success : boolean, msg : string = 'OK'){
+
+    private initBuildings(){ // TODO: Remove for production DEBUG ONLY
+        this.rooms.set("TESTBLDG1", new ChatRoom("TESTBLDG1", "BLDG1", this.sio, RoomType.building));
+        this.rooms.set("TESTBLDG2", new ChatRoom("TESTBLDG2", "BLDG2", this.sio, RoomType.building));
+        this.rooms.set("TESTBLDG3", new ChatRoom("TESTBLDG3", "BLDG3", this.sio, RoomType.building));
+        this.rooms.set("TESTBLDG4", new ChatRoom("TESTBLDG4", "BLDG4", this.sio, RoomType.building));
+        this.rooms.set("TESTBLDG5", new ChatRoom("TESTBLDG5", "BLDG5", this.sio, RoomType.building));
+    }
+
+    private eventRes(socket : socketIO.Socket, event : string, success : boolean, msg : string = 'OK', obj? : any){
         let response : EventResponse = {
             event: event,
             success : success,
-            msg : msg
+            msg : msg,
+            obj : obj
         }
         socket.emit('res', response);
     }
@@ -43,42 +63,85 @@ export class ChatServer{
     private initSocketEvents(){
         this.sio.on('connection', (socket) => {
             // Authenticate user
-            if(!socket.request.session || !socket.request.session.username){
+            let username = socket.request.session.username;
+            let avatarId = socket.request.session.avatarId;
+            if(!socket.request.session || !username || !avatarId){
                 this.eventRes(socket, 'connection', false, 'User not logged in');
                 socket.disconnect();
                 return;
             }
 
             // Create new user
-            socket.request.session.user = new User(socket.request.session.username, socket);
-            let user : User = socket.request.session.user;
+            socket.request.session.user = new ChatUser(username, socket, avatarId);
+            let user : ChatUser = socket.request.session.user;
 
             // Register event handlers
+            socket.on('join_room',      (roomId? : string)=>this.joinRoomCB(user, roomId));
+            socket.on('create_room',    (roomName? : string)=>this.createRoomCB(user, roomName));
+            socket.on('chat_msg',       (message? : string)=>this.chatMsgCB(user, message));
+            socket.on('leave_room',     ()=>this.leaveRoomCB(user));
+            socket.on('room_list',      ()=>this.roomlistCB(user));
+            socket.on('room_details',   ()=>this.roomDetailsCB(user));
             socket.on('disconnect',     ()=>this.disconnectCB(user));
             socket.on('timeout',        ()=>this.timeoutCB(user));
-
-            socket.on('join_room',      (roomId : string)=>this.joinRoomCB(user, roomId));
-            socket.on('leave_room',     ()=>this.leaveRoomCB(user));
-            socket.on('create_room',    (roomName : string)=>this.createRoomCB(user, roomName));
-            socket.on('chat_msg',       (message : string)=>this.chatMsgCB(user, message));
         });
     }
 
     // == Default Callbacks ================================================================ //
-    private disconnectCB(user : User){
+    private disconnectCB(user : ChatUser){
         if(user.room){
             user.room.removeUser(user);
         }
     }
 
-    private timeoutCB(user : User){
+    private timeoutCB(user : ChatUser){
         this.disconnectCB(user);
     }
 
     // == Chat Room Callbacks ============================================================== //
+    private roomDetailsCB(user : ChatUser){
+        if (user.room){
+            let room_details = {
+                id : user.room.id,
+                name : user.room.name,
+                type : user.room.type,
+                children : user.room.getChildrenIds(),
+                connectedUsers : user.room.getUsers()
+            }
+            this.eventRes(user.socket, 'room_details', true, 'OK', room_details);
+        } else {
+            this.eventRes(user.socket, 'room_details', false, "User not in room");
+        }
+    }
 
-    private createRoomCB(user : User, roomName : string){
+    private roomlistCB(user:ChatUser){
+        let roomList = []
+        if (user.room){
+            roomList = Array.from(user.room.subRooms.values());
+        } else {
+            roomList = Array.from(this.rooms.values());
+        }
+
+        let listToSend = new Array<RoomListing>(roomList.length);
+        for (let i = 0; i < roomList.length; i++){
+            let room = roomList[i];
+            listToSend[i] = {
+                id : room.id,
+                name : room.name,
+                type : room.type,
+                userCount : room.totalUsers()
+            }
+        }
+        this.eventRes(user.socket, 'room_list', true, 'OK', listToSend);
+    }
+
+    private createRoomCB(user : ChatUser, roomName? : string){
         // Limit room name size
+        if (!roomName){
+            this.eventRes(user.socket, 'create_room', false, 'Missing roomName parameter');
+            return;
+        }
+
         if (roomName.length > this.ROOM_NAME_MAXLEN){
             this.eventRes(user.socket, 'create_room', false, "Room name too long | MaxLen: "+this.ROOM_NAME_MAXLEN);
             return;
@@ -99,7 +162,13 @@ export class ChatServer{
         }
     }
 
-    private joinRoomCB(user : User, roomId : string){
+    private joinRoomCB(user : ChatUser, roomId? : string){
+
+        if (!roomId){
+            this.eventRes(user.socket, 'create_room', false, 'Missing roomId parameter');
+            return;
+        }
+
         if(user.room){
             if(user.room.subRooms.has(roomId)){
                 user.room.subRooms.get(roomId)?.addUser(user);
@@ -115,7 +184,7 @@ export class ChatServer{
         }
     }
 
-    private leaveRoomCB(user : User){
+    private leaveRoomCB(user : ChatUser){
         if (user.room && user.room.parent){
             user.room.removeUser(user);
             user.room.parent.addUser(user);
@@ -128,7 +197,11 @@ export class ChatServer{
         }
     }
 
-    private chatMsgCB(user : User, message : string){
+    private chatMsgCB(user : ChatUser, message?: string){
+        if (!message){
+            this.eventRes(user.socket, 'create_room', false, 'Missing message parameter');
+            return;
+        }
         if (message.length < 1){
             this.eventRes(user.socket, 'chat_msg', false, 'Messages cannot be empty.');
             return;
