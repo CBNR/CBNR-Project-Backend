@@ -86,7 +86,7 @@ class CbnrServer{
                     req.session.username = req.body.username;
                     req.session.avatarId= req.body.avatarId;
                     res.status(200);
-                    res.redirect('/');
+                    res.send();
                 } else {
                     res.status(400);
                     res.send();
