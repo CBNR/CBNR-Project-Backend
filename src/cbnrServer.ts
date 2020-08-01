@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import socketIO from 'socket.io';
+import https from 'https';
 
 import redis from 'redis';
 import connectRedis from 'connect-redis';
@@ -8,27 +8,27 @@ import session from 'express-session';
 
 import bodyParser from 'body-parser';
 import path from 'path';
+import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
-import { RoomType } from "./model/RoomType";
 import { ChatServer } from "./ChatServer";
-import { ChatRoom } from "./ChatRoom";
+import * as dotenv from 'dotenv';
 
 // Environment variables
-const {
-    PORT = 3001,
-    REDIS_DOMAIN = 'localhost',
-    REDIS_PORT = '6379',
-    SECRET = 'YEETUS DA GITUS',
-    NODE_ENV = 'dev'
-} = process.env;
-
+dotenv.config({path:path.join(__dirname, '..', '..', '.env')});
+const NODE_ENV = "dev" || process.env.NODE_ENV;
+const HTTP_PORT = 3000 || process.env.HTTP_PORT;
+const HTTPS_PORT = 3001 || process.env.HTTPS_PORT;
+const REDIS_DOMAIN = 'localhost' || process.env.REDIS_DOMAIN;
+const REDIS_PORT = '6379' || process.env.REDIS_PORT
+const SECRET = 'YEETUS DA GITUS' || process.env.SECRET;
 const SESSION_SECURE = process.env.NODE_ENV === 'production';
 
 class CbnrServer{
     private socketServer : ChatServer;
     private httpServer : http.Server;
-    
+    private httpsServer : https.Server;
+
     private redisStore : connectRedis.RedisStore;
     private redisClient : redis.RedisClient;
 
@@ -65,6 +65,12 @@ class CbnrServer{
         this.app.use(bodyParser.urlencoded({extended:true}));
 
         // Init servers
+        let httpsOptions = {
+            key: fs.readFileSync(path.join(__dirname, '..', '..', 'private.key')),
+            cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certificate.crt'))
+        }
+
+        this.httpsServer = https.createServer(httpsOptions, this.app);
         this.httpServer = http.createServer(this.app);
         this.socketServer = new ChatServer(this.httpServer, this.sessionMiddleware);
 
@@ -99,12 +105,18 @@ class CbnrServer{
         });
     }
 
-    public listen(port : number){
-        this.httpServer.listen(port, ()=>{
-            console.log("server listening to port " + port);
-        });
+    public listen(){
+        if(SESSION_SECURE){
+            this.httpsServer.listen(HTTPS_PORT, ()=>{
+                console.log("server listening to port " + HTTPS_PORT);
+            });
+        } else {
+            this.httpServer.listen(HTTP_PORT, ()=>{
+                console.log("server listening to port " + HTTP_PORT);
+            });
+        }
     }
 }
 
-let tomato = new CbnrServer();
-tomato.listen(3001);
+let cbnr = new CbnrServer();
+cbnr.listen();
