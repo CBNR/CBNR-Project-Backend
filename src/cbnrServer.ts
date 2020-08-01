@@ -17,6 +17,7 @@ import * as dotenv from 'dotenv';
 // Environment variables
 dotenv.config({path:path.join(__dirname, '..', '..', '.env')});
 console.log(process.env);
+const DOMAIN = process.env.DOMAIN || "localhost";
 const NODE_ENV = process.env.NODE_ENV || "dev";
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
 const HTTPS_PORT = process.env.HTTPS_PORT || 3001;
@@ -60,20 +61,31 @@ class CbnrServer{
             }
         });
 
+        // Init httpServer
+        this.httpsServer = https.createServer(
+            {
+            key: fs.readFileSync(path.join(__dirname, '..', '..', 'private.key')),
+            cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certificate.crt'))
+            },
+            this.app
+        );
+        
+        // For production, always use the https server
+        if (NODE_ENV === 'production'){
+            this.httpServer = http.createServer((req,res)=>{
+                res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+                res.end();
+            });
+            this.socketServer = new ChatServer(this.httpsServer, this.sessionMiddleware);
+        } else {
+            this.httpServer = http.createServer(this.app);
+            this.socketServer = new ChatServer(this.httpServer, this.sessionMiddleware);
+        }
+
         // Init middlewares
         this.app.use(this.sessionMiddleware);
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended:true}));
-
-        // Init servers
-        let httpsOptions = {
-            key: fs.readFileSync(path.join(__dirname, '..', '..', 'private.key')),
-            cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certificate.crt'))
-        }
-
-        this.httpsServer = https.createServer(httpsOptions, this.app);
-        this.httpServer = http.createServer(this.app);
-        this.socketServer = new ChatServer(this.httpServer, this.sessionMiddleware);
 
         // deploy with react
         this.app.use(express.static(path.join(__dirname, 'public')));
