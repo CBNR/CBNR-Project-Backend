@@ -17,12 +17,12 @@ import * as dotenv from 'dotenv';
 // Environment variables
 dotenv.config({path:path.join(__dirname, '..', '..', '.env')});
 console.log(process.env);
-const NODE_ENV = "dev" || process.env.NODE_ENV;
-const HTTP_PORT = 3000 || process.env.HTTP_PORT;
-const HTTPS_PORT = 3001 || process.env.HTTPS_PORT;
-const REDIS_DOMAIN = 'localhost' || process.env.REDIS_DOMAIN;
-const REDIS_PORT = '6379' || process.env.REDIS_PORT
-const SECRET = 'YEETUS DA GITUS' || process.env.SECRET;
+const NODE_ENV = process.env.NODE_ENV || "dev";
+const HTTP_PORT = process.env.HTTP_PORT || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 3001;
+const REDIS_DOMAIN = process.env.REDIS_DOMAIN || 'localhost';
+const REDIS_PORT = process.env.REDIS_PORT || '6379';
+const SECRET = process.env.SECRET || "8972q3hxn78tgb*bgr65F967";
 const SESSION_SECURE = process.env.NODE_ENV === 'production';
 
 class CbnrServer{
