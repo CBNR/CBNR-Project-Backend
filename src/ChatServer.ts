@@ -8,7 +8,6 @@ import {ChatUser} from './User';
 import {RoomType} from './model/RoomType';
 
 interface EventResponse{
-    event : string,
     success : boolean,
     msg : string,
     obj? : any
@@ -52,12 +51,11 @@ export class ChatServer{
 
     private eventRes(socket : socketIO.Socket, event : string, success : boolean, msg : string = 'OK', obj? : any){
         let response : EventResponse = {
-            event: event,
             success : success,
             msg : msg,
             obj : obj
         }
-        socket.emit('res', response);
+        socket.emit(event, response);
     }
 
     private initSocketEvents(){
@@ -79,7 +77,7 @@ export class ChatServer{
             // Register event handlers
             socket.on('join_room',      (roomId? : string)=>this.joinRoomCB(user, roomId));
             socket.on('create_room',    (roomName? : string)=>this.createRoomCB(user, roomName));
-            socket.on('chat_msg',       (message? : string)=>this.chatMsgCB(user, message));
+            socket.on('send_msg',       (message? : string)=>this.sendMsgCB(user, message));
             socket.on('leave_room',     ()=>this.leaveRoomCB(user));
             socket.on('room_list',      ()=>this.roomlistCB(user));
             socket.on('room_details',   ()=>this.roomDetailsCB(user));
@@ -198,7 +196,7 @@ export class ChatServer{
         }
     }
 
-    private chatMsgCB(user : ChatUser, message?: string){
+    private sendMsgCB(user : ChatUser, message?: string){
         if (!message){
             this.eventRes(user.socket, 'create_room', false, 'Missing message parameter');
             return;

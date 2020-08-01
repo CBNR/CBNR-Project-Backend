@@ -50,7 +50,7 @@ class CbnrServer{
                 client: this.redisClient
             }),
             saveUninitialized : false,
-            secret  : SECRET, // TODO: replace with a better key
+            secret  : SECRET,
             resave  : false,
             rolling : false,
             cookie  : {

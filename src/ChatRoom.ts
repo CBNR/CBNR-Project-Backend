@@ -32,14 +32,14 @@ export class ChatRoom{
     }
     
     public broadcastMsg(sender : string, message : string){
-        this.sio.to(this.id).emit('chat_msg', {
+        this.sio.to(this.id).emit('rcv_msg', {
             time : this.date.getTime(),
             message : message,
             sender : sender
         });
     }
 
-    public addUser(user : ChatUser){ // TODO: replace with user
+    public addUser(user : ChatUser){
         user.socket.join(this.id, ()=>{
             this.users.set(user, user.getPublicUser());
         });
