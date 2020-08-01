@@ -63,16 +63,17 @@ export class ChatServer{
     private initSocketEvents(){
         this.sio.on('connection', (socket) => {
             // Authenticate user
+            let userId = socket.request.session.userId;
             let username = socket.request.session.username;
             let avatarId = socket.request.session.avatarId;
-            if(!socket.request.session || !username || !avatarId){
+            if(!socket.request.session || !username || !avatarId || !userId){
                 this.eventRes(socket, 'connection', false, 'User not logged in');
                 socket.disconnect();
                 return;
             }
 
             // Create new user
-            socket.request.session.user = new ChatUser(username, socket, avatarId);
+            socket.request.session.user = new ChatUser(userId, username, socket, avatarId);
             let user : ChatUser = socket.request.session.user;
 
             // Register event handlers

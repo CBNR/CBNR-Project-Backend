@@ -8,6 +8,7 @@ import session from 'express-session';
 
 import bodyParser from 'body-parser';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 import { RoomType } from "./model/RoomType";
 import { ChatServer } from "./ChatServer";
@@ -84,9 +85,10 @@ class CbnrServer{
             } else {
                 if (req.body.username != undefined && req.body.avatarId != undefined){
                     req.session.username = req.body.username;
-                    req.session.avatarId= req.body.avatarId;
+                    req.session.avatarId = req.body.avatarId;
+                    req.session.userId = uuidv4();
                     res.status(200);
-                    res.send();
+                    res.send(req.session.userId);
                 } else {
                     res.status(400);
                     res.send();

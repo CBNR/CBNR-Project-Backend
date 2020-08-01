@@ -1,6 +1,5 @@
 import socketIO from 'socket.io';
 import { ChatRoom } from './ChatRoom';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface User{
     id: string,
@@ -15,11 +14,11 @@ export class ChatUser{
     public readonly id : string;
     public readonly avatarId : string;
 
-    constructor(username:string, socket : socketIO.Socket, avatarId : string){
+    constructor(userId : string, username:string, socket : socketIO.Socket, avatarId : string){
         this.name = username;
         this.avatarId = avatarId;
         this.socket = socket;
-        this.id = uuidv4();
+        this.id = userId;
     }
 
     public getPublicUser() : User{
