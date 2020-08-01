@@ -68,13 +68,15 @@ class CbnrServer{
         this.httpServer = http.createServer(this.app);
         this.socketServer = new ChatServer(this.httpServer, this.sessionMiddleware);
 
+        // deploy with react
+        this.app.use(express.static(path.join(__dirname, 'public')));
         // Declare routes
         this.initRoutes();
     }
 
     private initRoutes(){
-        this.app.get('/', (req,res)=>{
-            res.sendFile(path.join(__dirname,'..','debug', 'test.html'));
+        this.app.get('/', function(req, res) {
+            res.sendFile(path.join(__dirname, 'public', 'index.html'));
         });
 
         this.app.post('/login', (req,res)=>{
