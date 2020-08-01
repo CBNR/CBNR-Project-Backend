@@ -16,7 +16,6 @@ import * as dotenv from 'dotenv';
 
 // Environment variables
 dotenv.config({path:path.join(__dirname, '..', '..', '.env')});
-console.log(process.env);
 const DOMAIN = process.env.DOMAIN || "localhost";
 const NODE_ENV = process.env.NODE_ENV || "dev";
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
