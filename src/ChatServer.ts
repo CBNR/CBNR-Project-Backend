@@ -206,7 +206,7 @@ export class ChatServer{
             return;
         }
         if (user.room){
-            user.room.broadcastMsg(user.name, message);
+            user.room.broadcastMsg(user.id, message);
             this.eventRes(user.socket, 'chat_msg', true);
         } else {
             this.eventRes(user.socket, 'chat_msg', false, 'User not in a room');

@@ -6,7 +6,7 @@ import uuid from 'uuid';
 
 interface ChatMessage{
     time : number,
-    sender : string,
+    senderId : string,
     message : string
 }
 
@@ -31,11 +31,11 @@ export class ChatRoom{
         this.parent = parent;
     }
     
-    public broadcastMsg(sender : string, message : string){
+    public broadcastMsg(senderId : string, message : string){
         this.sio.to(this.id).emit('rcv_msg', {
             time : this.date.getTime(),
-            message : message,
-            sender : sender
+            senderId : senderId,
+            message : message
         });
     }
 
@@ -43,7 +43,7 @@ export class ChatRoom{
         user.socket.join(this.id, ()=>{
             this.users.set(user, user.getPublicUser());
         });
-        this.broadcastMsg("Server", user.name + " joined the room.");
+        this.broadcastMsg(user.id, "<joined the room>");
         user.room = this;
     }
 
@@ -51,7 +51,7 @@ export class ChatRoom{
         user.socket.leave(this.id, ()=>{
             this.users.delete(user);
         });
-        this.broadcastMsg("Server", user.name + " left the room.");
+        this.broadcastMsg(user.id, "<left the room>");
         user.room = undefined;
     }
 
