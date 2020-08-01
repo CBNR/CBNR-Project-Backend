@@ -16,6 +16,7 @@ import * as dotenv from 'dotenv';
 
 // Environment variables
 dotenv.config({path:path.join(__dirname, '..', '..', '.env')});
+console.log(process.env);
 const NODE_ENV = "dev" || process.env.NODE_ENV;
 const HTTP_PORT = 3000 || process.env.HTTP_PORT;
 const HTTPS_PORT = 3001 || process.env.HTTPS_PORT;
@@ -106,15 +107,12 @@ class CbnrServer{
     }
 
     public listen(){
-        if(SESSION_SECURE){
-            this.httpsServer.listen(HTTPS_PORT, ()=>{
-                console.log("server listening to port " + HTTPS_PORT);
-            });
-        } else {
-            this.httpServer.listen(HTTP_PORT, ()=>{
-                console.log("server listening to port " + HTTP_PORT);
-            });
-        }
+        this.httpsServer.listen(HTTPS_PORT, ()=>{
+            console.log("HTTPS server listening to port " + HTTPS_PORT);
+        });
+        this.httpServer.listen(HTTP_PORT, ()=>{
+            console.log("HTTP server listening to port " + HTTP_PORT);
+        });
     }
 }
 
