@@ -61,13 +61,19 @@ class CbnrServer{
         });
 
         // Init httpServer
-        this.httpsServer = https.createServer(
-            {
-            key: fs.readFileSync(path.join(__dirname, '..', '..', 'private.key')),
-            cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certificate.crt'))
-            },
-            this.app
-        );
+        if(process.env.NODE_ENV === 'production'){
+            this.httpsServer = https.createServer(
+                {
+                key: fs.readFileSync(path.join(__dirname, '..', '..', 'private.key')),
+                cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certificate.crt'))
+                },
+                this.app
+            );
+        } else {
+            this.httpsServer = https.createServer(
+                this.app
+            );
+        }
         
         // For production, always use the https server
         if (NODE_ENV === 'production'){
@@ -118,9 +124,11 @@ class CbnrServer{
     }
 
     public listen(){
-        this.httpsServer.listen(HTTPS_PORT, ()=>{
-            console.log("HTTPS server listening to port " + HTTPS_PORT);
-        });
+        if(process.env.NODE_ENV === 'production'){
+            this.httpsServer.listen(HTTPS_PORT, ()=>{
+                console.log("HTTPS server listening to port " + HTTPS_PORT);
+            });
+        }
         this.httpServer.listen(HTTP_PORT, ()=>{
             console.log("HTTP server listening to port " + HTTP_PORT);
         });
