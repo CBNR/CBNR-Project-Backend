@@ -2,9 +2,10 @@ import socketIO from 'socket.io';
 import {RoomType} from './model/RoomType';
 import {ChatUser, User} from './User';
 
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChatMessage{
+    id: string,
     time : number,
     senderId : string,
     message : string
@@ -33,6 +34,7 @@ export class ChatRoom{
     
     public broadcastMsg(senderId : string, message : string){
         this.sio.to(this.id).emit('rcv_msg', {
+            id: uuidv4(),
             time : this.date.getTime(),
             senderId : senderId,
             message : message
@@ -60,7 +62,7 @@ export class ChatRoom{
      */
     public createSubRoom(user : ChatUser, roomName : string) : boolean{
         if (this.type == RoomType.building){
-            let newRoom = new ChatRoom('ROOM'+uuid.v4().substr(23,12), roomName, this.sio, RoomType.room, this);
+            let newRoom = new ChatRoom('ROOM'+uuidv4().substr(23,12), roomName, this.sio, RoomType.room, this);
             this.subRooms.set(newRoom.id, newRoom);
             return true;
         } else {

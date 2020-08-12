@@ -15,7 +15,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io("http://localhost:3001/");
+        const socket = io("http://localhost:3000");
         
     </script>
 
@@ -25,7 +25,15 @@
             console.log(msg);
         });
 
-        socket.on('chat_msg', (msg)=>{
+        socket.on('rcv_msg', (msg)=>{
+            console.log(msg);
+        });
+
+        socket.on('room_list', (msg)=>{
+            console.log(msg);
+        });
+
+        socket.on('join_room', (msg)=>{
             console.log(msg);
         });
     </script>
