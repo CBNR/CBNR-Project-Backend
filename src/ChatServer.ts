@@ -224,19 +224,11 @@ export class ChatServer{
     }
 
     private sendMsgCB(user : ChatUser, message?: string){
-        if (!message){
-            this.eventRes(user.socket, 'create_room', false, 'Missing message parameter');
-            return;
-        }
-        if (message.length < 1){
-            this.eventRes(user.socket, 'chat_msg', false, 'Messages cannot be empty.');
+        if (!message || message.length < 1){
             return;
         }
         if (user.room){
             user.room.broadcastMsg(user.id, message);
-            this.eventRes(user.socket, 'chat_msg', true);
-        } else {
-            this.eventRes(user.socket, 'chat_msg', false, 'User not in a room');
         }
 
         console.log("chat_msg : " + user.id);
