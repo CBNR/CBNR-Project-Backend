@@ -71,11 +71,19 @@ export class ChatRoom{
     }
 
     public getUsers() : User[]{
-        return Array.from(this.users.values());
+        if (this.users.size == 0){
+            return [];
+        } else {
+            return Array.from(this.users.values());
+        }
     }
 
     public getChildrenIds() : string[] {
-        return Array.from(this.subRooms.keys())
+        if (this.subRooms.size == 0){
+            return []
+        } else {
+            return Array.from(this.subRooms.keys());
+        }
     }
 
     public totalUsers() : number{
