@@ -77,7 +77,7 @@ export class ChatServer{
             // Register event handlers
             socket.on('join_room',      (roomId? : string)=>this.joinRoomCB(user, roomId));
             socket.on('create_room',    (roomName? : string)=>this.createRoomCB(user, roomName));
-            socket.on('send_msg',       (message? : string)=>this.sendMsgCB(user, message));
+            socket.on('chat_msg',       (message? : string)=>this.sendMsgCB(user, message));
             socket.on('leave_room',     ()=>this.leaveRoomCB(user));
             socket.on('room_list',      ()=>this.roomlistCB(user));
             socket.on('room_details',   ()=>this.roomDetailsCB(user));
