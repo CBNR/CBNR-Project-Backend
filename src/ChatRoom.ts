@@ -40,12 +40,12 @@ export class ChatRoom{
             message : message
         });
     }
-
+    
     public addUser(user : ChatUser){
         user.socket.join(this.id, ()=>{
             this.users.set(user, user.getPublicUser());
         });
-        this.broadcastMsg(user.id, "<joined the room>");
+        this.sio.to(this.id).emit('user_leave', user.getPublicUser());
         user.room = this;
     }
 
@@ -53,7 +53,7 @@ export class ChatRoom{
         user.socket.leave(this.id, ()=>{
             this.users.delete(user);
         });
-        this.broadcastMsg(user.id, "<left the room>");
+        this.sio.to(this.id).emit('user_join', user.getPublicUser());
         user.room = undefined;
     }
 
