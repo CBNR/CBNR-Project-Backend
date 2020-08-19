@@ -190,7 +190,15 @@ export class ChatServer{
             }
         } else if (this.rooms.has(roomId)) {
             this.rooms.get(roomId)?.addUser(user);
-            this.eventRes(user.socket, 'join_room', true);
+            let room = this.rooms.get(roomId);
+            let roomDetails = {
+                id : room?.id,
+                name : room?.name,
+                type : room?.type,
+                children : room?.getChildrenIds(),
+                connectedUsers : room?.getUsers()
+            }
+            this.eventRes(user.socket, 'join_room', true, "OK", roomDetails);
         } else {
             this.eventRes(user.socket, 'join_room', false, "Invalid RoomID (doesn't exist)");
         }
