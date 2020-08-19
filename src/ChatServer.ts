@@ -100,14 +100,14 @@ export class ChatServer{
     // == Chat Room Callbacks ============================================================== //
     private roomDetailsCB(user : ChatUser){
         if (user.room){
-            let room_details = {
+            let roomDetails = {
                 id : user.room.id,
                 name : user.room.name,
                 type : user.room.type,
                 children : user.room.getChildrenIds(),
                 connectedUsers : user.room.getUsers()
             }
-            this.eventRes(user.socket, 'room_details', true, 'OK', room_details);
+            this.eventRes(user.socket, 'room_details', true, 'OK', roomDetails);
         } else {
             this.eventRes(user.socket, 'room_details', false, "User not in room");
         }
@@ -171,7 +171,14 @@ export class ChatServer{
         if(user.room){
             if(user.room.subRooms.has(roomId)){
                 user.room.subRooms.get(roomId)?.addUser(user);
-                this.eventRes(user.socket, 'join_room', true);
+                let roomDetails = {
+                    id : user.room.id,
+                    name : user.room.name,
+                    type : user.room.type,
+                    children : user.room.getChildrenIds(),
+                    connectedUsers : user.room.getUsers()
+                }
+                this.eventRes(user.socket, 'join_room', true, "OK", roomDetails);
             } else {
                 this.eventRes(user.socket, 'join_room', false, "Invalid RoomID (not a subroom of current room)");
             }
@@ -184,13 +191,15 @@ export class ChatServer{
     }
 
     private leaveRoomCB(user : ChatUser){
+        // Send room id of room you leave.
         if (user.room && user.room.parent){
             user.room.removeUser(user);
-            user.room.parent.addUser(user);
             this.eventRes(user.socket, 'leave_room', true);
+            // Join parent room if in a subroom
+            this.joinRoomCB(user);
         } else if (user.room && !user.room.parent) {
             user.room.removeUser(user);
-            this.eventRes(user.socket, 'leave_room', true);
+            this.eventRes(user.socket, 'leave_room', true,);
         } else {
             this.eventRes(user.socket, 'leave_room', false, "User not in a room");
         }
