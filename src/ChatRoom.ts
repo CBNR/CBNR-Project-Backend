@@ -33,7 +33,7 @@ export class ChatRoom{
     }
     
     public broadcastMsg(senderId : string, message : string){
-        this.sio.to(this.id).emit('rcv_msg', {
+        this.sio.to(this.id).emit('chat_msg', {
             id: uuidv4(),
             time : this.date.getTime(),
             senderId : senderId,
