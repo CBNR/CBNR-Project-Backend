@@ -83,6 +83,8 @@ export class ChatServer{
             socket.on('room_details',   ()=>this.roomDetailsCB(user));
             socket.on('disconnect',     ()=>this.disconnectCB(user));
             socket.on('timeout',        ()=>this.timeoutCB(user));
+
+            console.log("new connection, UID" + userId);
         });
     }
 
@@ -111,6 +113,7 @@ export class ChatServer{
         } else {
             this.eventRes(user.socket, 'room_details', false, "User not in room");
         }
+        console.log("room_details : " + user.id);
     }
 
     private roomlistCB(user:ChatUser){
@@ -132,6 +135,7 @@ export class ChatServer{
             }
         }
         this.eventRes(user.socket, 'room_list', true, 'OK', listToSend);
+        console.log("room_list : " + user.id);
     }
 
     private createRoomCB(user : ChatUser, roomName? : string){
@@ -159,6 +163,8 @@ export class ChatServer{
         } else {
             this.eventRes(user.socket, 'create_room', false, "User not in a room");
         }
+
+        console.log("create_room : " + user.id);
     }
 
     private joinRoomCB(user : ChatUser, roomId? : string){
@@ -188,6 +194,8 @@ export class ChatServer{
         } else {
             this.eventRes(user.socket, 'join_room', false, "Invalid RoomID (doesn't exist)");
         }
+
+        console.log("join_room : " + roomId + " : " + user.id);
     }
 
     private leaveRoomCB(user : ChatUser){
@@ -203,6 +211,8 @@ export class ChatServer{
         } else {
             this.eventRes(user.socket, 'leave_room', false, "User not in a room");
         }
+
+        console.log("leave_room : " + user.id);
     }
 
     private sendMsgCB(user : ChatUser, message?: string){
@@ -220,6 +230,8 @@ export class ChatServer{
         } else {
             this.eventRes(user.socket, 'chat_msg', false, 'User not in a room');
         }
+
+        console.log("chat_msg : " + user.id);
     }
 
     // == Other Callbacks ============================================================== //
