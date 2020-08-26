@@ -36,17 +36,22 @@ export class ChatServer{
             sessionMiddleware(socket.request, socket.request.res || {}, next);
         });
         this.initSocketEvents();
-        this.initBuildings(); // TODO: Remove for production DEBUG ONLY
+        this.initBuildings();
     }
 
     // == Private functions ================================================================ //
 
-    private initBuildings(){ // TODO: Remove for production DEBUG ONLY
-        this.rooms.set("TESTBLDG1", new ChatRoom("TESTBLDG1", "BLDG1", this.sio, RoomType.building));
-        this.rooms.set("TESTBLDG2", new ChatRoom("TESTBLDG2", "BLDG2", this.sio, RoomType.building));
-        this.rooms.set("TESTBLDG3", new ChatRoom("TESTBLDG3", "BLDG3", this.sio, RoomType.building));
-        this.rooms.set("TESTBLDG4", new ChatRoom("TESTBLDG4", "BLDG4", this.sio, RoomType.building));
-        this.rooms.set("TESTBLDG5", new ChatRoom("TESTBLDG5", "BLDG5", this.sio, RoomType.building));
+    private initBuildings(){
+        this.rooms.set("BLDG_1", new ChatRoom("BLDG_1", "New Horizons", this.sio, RoomType.building));
+        this.rooms.set("BLDG_2", new ChatRoom("BLDG_2", "Engineering", this.sio, RoomType.building));
+        this.rooms.set("BLDG_3", new ChatRoom("BLDG_3", "Hargrave Andrew Library", this.sio, RoomType.building));
+        this.rooms.set("BLDG_4", new ChatRoom("BLDG_4", "Lemon Scented Lawns", this.sio, RoomType.building));
+        this.rooms.set("BLDG_5", new ChatRoom("BLDG_5", "Campus Centre", this.sio, RoomType.building));
+        this.rooms.set("BLDG_6", new ChatRoom("BLDG_6", "Menzies", this.sio, RoomType.building));
+        this.rooms.set("BLDG_7", new ChatRoom("BLDG_7", "Law Building", this.sio, RoomType.building));
+        this.rooms.set("BLDG_8", new ChatRoom("BLDG_8", "Learning Teaching Building", this.sio, RoomType.building));
+        this.rooms.set("BLDG_9", new ChatRoom("BLDG_9", "Matheson Library", this.sio, RoomType.building));
+        this.rooms.set("BLDG_10", new ChatRoom("BLDG_10", "Monash Sports", this.sio, RoomType.building));
     }
 
     private eventRes(socket : socketIO.Socket, event : string, success : boolean, msg : string = 'OK', obj? : any){
